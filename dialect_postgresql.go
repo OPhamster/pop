@@ -58,9 +58,11 @@ func (p *postgresql) Create(s store, model *Model, cols columns.Columns) error {
 		w := cols.Writeable()
 		var query string
 		if len(w.Cols) > 0 {
-			query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) returning id", p.Quote(model.TableName()), w.QuotedString(p), w.SymbolizedString())
+			// we need to respect the id fields mapped by the tags
+			query = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) returning %s", p.Quote(model.TableName()), w.QuotedString(p), w.SymbolizedString(), model.IDField())
 		} else {
-			query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES returning id", p.Quote(model.TableName()))
+			// we need to respect the id fields mapped by the tags
+			query = fmt.Sprintf("INSERT INTO %s DEFAULT VALUES returning %s", p.Quote(model.TableName()), model.IDField())
 		}
 		log(logging.SQL, query)
 		stmt, err := s.PrepareNamed(query)
